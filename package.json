@@ -1,0 +1,42 @@
+{
+  "name": "lokatalenta-backlog",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "LokaTalenta Dedicated Backlog & Multi-Agent Grooming Application",
+  "scripts": {
+    "dev": "concurrently -n api,ui -c cyan,green \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node --watch server/index.ts",
+    "dev:client": "vite --config client/vite.config.ts",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsc -b tsconfig.server.json",
+    "build:client": "tsc -b client/tsconfig.app.json client/tsconfig.node.json && vite build --config client/vite.config.ts",
+    "start": "node dist/server/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.3.0",
+    "lucide-react": "^1.77.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.7",
+    "oxlint": "^1.94.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^4.1.12"
+  }
+}
