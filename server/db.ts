@@ -208,6 +208,90 @@ export function seedDatabaseIfEmpty(db: DatabaseSync): number {
       ownerAgentId: 23,
       sprintId: null,
     },
+    {
+      id: 'FREE-001',
+      type: 'story',
+      title: 'Enforce 100% Free-Access Policy & Zero Paywall Guardrails',
+      description:
+        'Ensure all assessment, Radar 5D, Kraepelin, and Recruiter Portal flows remain 100% free with zero Midtrans/Stripe/paywall gates.',
+      acceptanceCriteria: [
+        {
+          given: 'any Student/Candidate, Teacher/Recruiter, or Admin user accesses the ecosystem',
+          when: 'they navigate through assessments, reports, or organization onboarding',
+          then: 'all features are accessible 100% free without any payment or paywall prompt',
+        },
+      ],
+      storyPoints: 3,
+      priority: 'P0',
+      moscow: 'must',
+      status: 'ready',
+      ownerDivision: 'executive',
+      ownerAgentId: 1,
+      sprintId: 'SPR-16',
+    },
+    {
+      id: 'DEBT-161',
+      type: 'tech_debt',
+      title: 'Audit Mermaid/ELK Chunk Budget & Serverless /tmp SQLite Persistence',
+      description:
+        'Mitigate lokatalenta-docs Mermaid/ELK bundle size via lazy loading and document durable persistence strategy beyond ephemeral Vercel /tmp SQLite.',
+      acceptanceCriteria: [
+        {
+          given: 'lokatalenta-docs builds for production',
+          when: 'initial client chunks are inspected',
+          then: 'core route chunks remain lean and seeders stay idempotent across cold starts',
+        },
+      ],
+      storyPoints: 5,
+      priority: 'P1',
+      moscow: 'must',
+      status: 'ready',
+      ownerDivision: 'architecture',
+      ownerAgentId: 4,
+      sprintId: 'SPR-16',
+    },
+    {
+      id: 'QAE-161',
+      type: 'story',
+      title: 'Sprint 16 Complex Responsive Matrix (375px/768px/1280px+) & 3-POV E2E Suite',
+      description:
+        'Execute multi-step responsive, edge-case, and 3-User POV (Student/Candidate, Teacher/Recruiter, Admin/Governance) verification across all apps.',
+      acceptanceCriteria: [
+        {
+          given: 'the ecosystem apps are rendered at 375px mobile, 768px tablet, and 1280px+ desktop',
+          when: 'each 3-POV user executes end-to-end workflows including refresh and offline fallback',
+          then: 'zero horizontal overflow, zero unhandled errors, and 100% test pass rate are achieved',
+        },
+      ],
+      storyPoints: 8,
+      priority: 'P0',
+      moscow: 'must',
+      status: 'ready',
+      ownerDivision: 'qa',
+      ownerAgentId: 8,
+      sprintId: 'SPR-16',
+    },
+    {
+      id: 'SEC-161',
+      type: 'task',
+      title: 'Multi-Step Race Condition, XSS/CSV Injection & State Recovery Verification',
+      description:
+        'Validate concurrent attempt/capacity updates, XSS/CSV formula neutralization, HMAC signing, and fail-open offline recovery.',
+      acceptanceCriteria: [
+        {
+          given: 'adversarial payloads or concurrent mutations are dispatched',
+          when: 'the API and UI process the requests',
+          then: 'XSS/CSV injections are neutralized, race conditions are prevented, and state recovers cleanly',
+        },
+      ],
+      storyPoints: 5,
+      priority: 'P0',
+      moscow: 'must',
+      status: 'ready',
+      ownerDivision: 'devops',
+      ownerAgentId: 17,
+      sprintId: 'SPR-16',
+    },
   ];
 
   const insertStmt = db.prepare(`

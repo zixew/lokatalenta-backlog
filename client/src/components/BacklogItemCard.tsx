@@ -15,6 +15,7 @@ interface BacklogItemCardProps {
   onStatusChange: (id: string, status: BacklogStatus) => Promise<void>;
   onEdit: (item: BacklogItem) => void;
   onDelete: (id: string) => Promise<void>;
+  onInspect?: (item: BacklogItem) => void;
 }
 
 export function BacklogItemCard({
@@ -22,6 +23,7 @@ export function BacklogItemCard({
   onStatusChange,
   onEdit,
   onDelete,
+  onInspect,
 }: BacklogItemCardProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -52,7 +54,10 @@ export function BacklogItemCard({
   return (
     <article
       data-testid={`backlog-card-${item.id}`}
-      className="rounded-lg border border-[#E5E3DC] bg-white p-3.5 transition-all duration-200 ease-out hover:border-zinc-300 dark:border-zinc-800 dark:bg-[#161B22] dark:hover:border-zinc-700"
+      onClick={() => onInspect?.(item)}
+      className={`rounded-lg border border-[#E5E3DC] bg-white p-3.5 transition-all duration-200 ease-out hover:border-zinc-300 dark:border-zinc-800 dark:bg-[#161B22] dark:hover:border-zinc-700 ${
+        onInspect ? 'cursor-pointer hover:shadow-xs' : ''
+      }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-1.5">
         <span className="text-xs font-bold text-zinc-900 font-mono-tabular dark:text-slate-100">
@@ -121,7 +126,10 @@ export function BacklogItemCard({
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#E5E3DC] pt-2.5 dark:border-zinc-800">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="mt-3 flex items-center justify-between gap-2 border-t border-[#E5E3DC] pt-2.5 dark:border-zinc-800"
+      >
         <select
           data-testid={`card-status-select-${item.id}`}
           aria-label={`Change status for ${item.id}`}

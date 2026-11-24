@@ -8,6 +8,7 @@ interface KanbanBoardProps {
   onStatusChange: (id: string, status: BacklogStatus) => Promise<void>;
   onEdit: (item: BacklogItem) => void;
   onDelete: (id: string) => Promise<void>;
+  onInspect?: (item: BacklogItem) => void;
 }
 
 export function KanbanBoard({
@@ -15,6 +16,7 @@ export function KanbanBoard({
   onStatusChange,
   onEdit,
   onDelete,
+  onInspect,
 }: KanbanBoardProps) {
   return (
     <div
@@ -60,6 +62,7 @@ export function KanbanBoard({
                     onStatusChange={onStatusChange}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onInspect={onInspect}
                   />
                 ))
               )}

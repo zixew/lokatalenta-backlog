@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Download, LayoutGrid, List, Plus, RotateCcw, Search } from 'lucide-react';
 import {
   BACKLOG_ITEM_TYPES,
@@ -44,6 +45,29 @@ export function FilterToolbar({
   onCreateItem,
   exportCsvUrl,
 }: FilterToolbarProps) {
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   return (
     <section
       aria-label="Filter and actions"
@@ -88,14 +112,24 @@ export function FilterToolbar({
               className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-zinc-400"
             />
             <input
+              ref={searchInputRef}
               type="search"
               data-testid="filter-search"
               aria-label="Search backlog items"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search ID, title, notes..."
-              className="min-h-[44px] w-full rounded-lg border border-[#E5E3DC] bg-white py-1.5 pr-3 pl-8 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
+              className="min-h-[44px] w-full rounded-lg border border-[#E5E3DC] bg-white py-1.5 pr-9 pl-8 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
             />
+            {!search ? (
+              <kbd
+                onClick={() => searchInputRef.current?.focus()}
+                title="Press / to focus search"
+                className="font-mono-tabular absolute top-1/2 right-2.5 hidden -translate-y-1/2 cursor-pointer select-none rounded border border-[#E5E3DC] bg-[#F6F5F1] px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-400 sm:inline-block"
+              >
+                /
+              </kbd>
+            ) : null}
           </div>
 
           <select

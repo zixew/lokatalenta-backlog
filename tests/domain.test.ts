@@ -167,7 +167,7 @@ describe('Backlog Domain & Validation', () => {
     expect(countBefore.count).toBe(0);
 
     const firstSeedCount = seedDatabaseIfEmpty(db);
-    expect(firstSeedCount).toBe(6);
+    expect(firstSeedCount).toBe(10);
 
     const secondSeedCount = seedDatabaseIfEmpty(db);
     expect(secondSeedCount).toBe(0);

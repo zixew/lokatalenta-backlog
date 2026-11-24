@@ -15,6 +15,7 @@ import {
   getExportCsvUrl,
   updateBacklogItemApi,
 } from './api/backlogApi.ts';
+import { BacklogDetailDrawer } from './components/BacklogDetailDrawer.tsx';
 import { BacklogListView } from './components/BacklogListView.tsx';
 import { EcosystemHeader } from './components/EcosystemHeader.tsx';
 import { EmptyState } from './components/EmptyState.tsx';
@@ -60,6 +61,12 @@ export function App() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BacklogItem | null>(null);
+  const [inspectingItem, setInspectingItem] = useState<BacklogItem | null>(null);
+
+  const activeInspectItem = useMemo(() => {
+    if (!inspectingItem) return null;
+    return allItems.find((i) => i.id === inspectingItem.id) ?? inspectingItem;
+  }, [inspectingItem, allItems]);
 
   const activeFilters = useMemo(
     () => ({
@@ -202,6 +209,7 @@ export function App() {
           stats={stats}
           activeDivision={division}
           onSelectDivision={setDivision}
+          allItems={allItems}
         />
 
         <FilterToolbar
@@ -249,6 +257,7 @@ export function App() {
             onStatusChange={handleStatusChange}
             onEdit={handleOpenEdit}
             onDelete={handleDelete}
+            onInspect={setInspectingItem}
           />
         ) : (
           <BacklogListView
@@ -259,6 +268,13 @@ export function App() {
           />
         )}
       </main>
+
+      <BacklogDetailDrawer
+        item={activeInspectItem}
+        onClose={() => setInspectingItem(null)}
+        onQuickUpdate={handleUpdate}
+        onOpenFullEdit={handleOpenEdit}
+      />
 
       {modalOpen && (
         <ItemFormModal

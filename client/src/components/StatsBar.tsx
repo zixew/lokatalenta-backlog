@@ -1,19 +1,43 @@
+import { useMemo } from 'react';
 import { CANONICAL_DIVISIONS } from '../../../shared/contracts.ts';
-import type { BacklogStats, DivisionId } from '../../../shared/types.ts';
+import type { BacklogItem, BacklogStats, DivisionId } from '../../../shared/types.ts';
 
 interface StatsBarProps {
   stats: BacklogStats;
   activeDivision: string;
   onSelectDivision: (divisionId: string) => void;
+  allItems?: BacklogItem[];
 }
 
 export function StatsBar({
   stats,
   activeDivision,
   onSelectDivision,
+  allItems = [],
 }: StatsBarProps) {
   const readyAndGroomed = stats.byStatus.groomed + stats.byStatus.ready;
   const inSprintOrDone = stats.byStatus.in_sprint + stats.byStatus.done;
+
+  const spSummaryByDivision = useMemo(() => {
+    const map = new Map<DivisionId, { totalSp: number; doneSp: number; readySp: number }>();
+    for (const item of allItems) {
+      const current = map.get(item.ownerDivision) ?? { totalSp: 0, doneSp: 0, readySp: 0 };
+      current.totalSp += item.storyPoints;
+      if (item.status === 'done') current.doneSp += item.storyPoints;
+      if (item.status === 'ready') current.readySp += item.storyPoints;
+      map.set(item.ownerDivision, current);
+    }
+    return map;
+  }, [allItems]);
+
+  const activeDivisionMeta =
+    activeDivision !== 'all'
+      ? CANONICAL_DIVISIONS.find((d) => d.id === activeDivision)
+      : undefined;
+  const activeDivisionSp =
+    activeDivision !== 'all'
+      ? spSummaryByDivision.get(activeDivision as DivisionId)
+      : undefined;
 
   const handleDivisionClick = (divisionId: DivisionId) => {
     onSelectDivision(activeDivision === divisionId ? 'all' : divisionId);
@@ -94,6 +118,7 @@ export function StatsBar({
         {CANONICAL_DIVISIONS.map((division) => {
           const isSelected = activeDivision === division.id;
           const count = stats.byDivision[division.id] ?? 0;
+          const divSp = spSummaryByDivision.get(division.id)?.totalSp ?? 0;
           return (
             <button
               key={division.id}
@@ -115,10 +140,31 @@ export function StatsBar({
               <span>{division.shortName}</span>
               <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-700 font-mono-tabular dark:bg-zinc-800 dark:text-zinc-300">
                 {count}
+                {allItems.length > 0 ? ` · ${divSp} SP` : ''}
               </span>
             </button>
           );
         })}
+
+        {activeDivisionMeta && activeDivisionSp ? (
+          <div
+            data-testid="active-division-sp-summary"
+            className="ml-auto inline-flex items-center gap-2 rounded-full border border-[#0F766E]/30 bg-teal-50/70 px-3 py-1 text-xs text-[#0F766E] dark:border-teal-700 dark:bg-teal-950/40 dark:text-teal-300"
+          >
+            <span className="font-semibold">{activeDivisionMeta.shortName}:</span>
+            <span className="font-mono-tabular">
+              {activeDivisionSp.totalSp} SP total · {activeDivisionSp.readySp} ready ·{' '}
+              {activeDivisionSp.doneSp} done
+            </span>
+            <button
+              type="button"
+              onClick={() => onSelectDivision('all')}
+              className="ml-1 rounded px-1 text-[11px] font-semibold underline hover:no-underline"
+            >
+              All
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );
