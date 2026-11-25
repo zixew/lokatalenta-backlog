@@ -106,7 +106,7 @@ export function FilterToolbar({
             </button>
           </div>
 
-          <div className="relative min-w-[210px] flex-1 sm:flex-initial">
+          <div className="relative w-full sm:w-auto sm:min-w-[210px]">
             <Search
               aria-hidden="true"
               className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-zinc-400"
@@ -137,7 +137,7 @@ export function FilterToolbar({
             aria-label="Filter by division"
             value={division}
             onChange={(e) => onDivisionChange(e.target.value)}
-            className="min-h-[44px] rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
+            className="min-h-[44px] max-w-full rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
           >
             <option value="all">All Divisions</option>
             {CANONICAL_DIVISIONS.map((div) => (
@@ -152,7 +152,7 @@ export function FilterToolbar({
             aria-label="Filter by status"
             value={status}
             onChange={(e) => onStatusChange(e.target.value)}
-            className="min-h-[44px] rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
+            className="min-h-[44px] max-w-full rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
           >
             <option value="all">All Statuses</option>
             {BACKLOG_STATUSES.map((st) => (
@@ -167,7 +167,7 @@ export function FilterToolbar({
             aria-label="Filter by priority"
             value={priority}
             onChange={(e) => onPriorityChange(e.target.value)}
-            className="min-h-[44px] rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
+            className="min-h-[44px] max-w-full rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
           >
             <option value="all">All Priorities</option>
             {BACKLOG_PRIORITIES.map((prio) => (
@@ -182,7 +182,7 @@ export function FilterToolbar({
             aria-label="Filter by type"
             value={itemType}
             onChange={(e) => onItemTypeChange(e.target.value)}
-            className="min-h-[44px] rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
+            className="min-h-[44px] max-w-full rounded-lg border border-[#E5E3DC] bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-800 focus:border-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[36px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100"
           >
             <option value="all">All Types</option>
             {BACKLOG_ITEM_TYPES.map((t) => (

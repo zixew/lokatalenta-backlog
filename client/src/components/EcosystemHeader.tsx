@@ -18,7 +18,7 @@ export function EcosystemHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-[#E5E3DC] bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-[#161B22]/95">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <div
             aria-hidden="true"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-teal-800/20 bg-[#0F766E] text-white"
@@ -30,8 +30,8 @@ export function EcosystemHeader({
               <rect x="14" y="14" width="7" height="6" rx="1.5" fill="#FFFFFF" fillOpacity="0.85" />
             </svg>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-bold tracking-tight text-zinc-900 dark:text-slate-100">
                 LokaTalenta
               </span>
@@ -39,7 +39,7 @@ export function EcosystemHeader({
                 {totalItems} items
               </span>
             </div>
-            <p className="text-xs text-zinc-600 dark:text-slate-400">
+            <p className="truncate text-xs text-zinc-600 dark:text-slate-400">
               Backlog &amp; Multi-Agent Grooming
             </p>
           </div>

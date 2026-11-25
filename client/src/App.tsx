@@ -185,7 +185,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F5F1] text-[#18181B] dark:bg-[#0D1117] dark:text-slate-100">
+    <div className="min-h-screen overflow-x-hidden bg-[#F6F5F1] text-[#18181B] dark:bg-[#0D1117] dark:text-slate-100">
       <EcosystemHeader
         isDark={isDark}
         onToggleTheme={toggleTheme}
