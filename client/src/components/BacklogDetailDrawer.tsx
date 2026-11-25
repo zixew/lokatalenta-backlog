@@ -73,7 +73,7 @@ export function BacklogDetailDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-zinc-950/45 backdrop-blur-[1px]"
+      className="fixed inset-0 z-50 flex justify-end bg-black/25 backdrop-blur-[4px]"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -81,10 +81,10 @@ export function BacklogDetailDrawer({
       data-testid="backlog-detail-drawer"
     >
       <aside
-        className="flex h-full w-full max-w-xl flex-col border-l border-[#E5E3DC] bg-white shadow-2xl dark:border-zinc-800 dark:bg-[#161B22]"
+        className="transition-drawer-enter flex h-full w-full max-w-xl flex-col border-l border-[#D4D4CE] bg-white shadow-2xl dark:border-zinc-800 dark:bg-[#161B24]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-[#E5E3DC] bg-[#FAF9F6] px-5 py-4 dark:border-zinc-800 dark:bg-[#11161E]">
+        <header className="flex items-start justify-between gap-3 border-b border-[#D4D4CE] bg-[#F3F3F0] px-5 py-4 dark:border-zinc-800 dark:bg-[#11161E]">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="font-mono-tabular text-xs font-bold text-zinc-900 dark:text-slate-100">

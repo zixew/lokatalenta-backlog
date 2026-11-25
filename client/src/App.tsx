@@ -265,7 +265,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F6F5F1] text-[#18181B] dark:bg-[#0D1117] dark:text-slate-100">
+    <div className="min-h-screen overflow-x-hidden bg-[#F3F3F0] text-[#0E1015] dark:bg-[#0E1015] dark:text-slate-100">
       <EcosystemHeader
         isDark={isDark}
         onToggleTheme={toggleTheme}
@@ -384,8 +384,24 @@ export function App() {
         )}
 
         {loading ? (
-          <div className="rounded-lg border border-[#E5E3DC] bg-white p-10 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:bg-[#161B22] dark:text-slate-400">
-            Loading backlog items...
+          <div
+            aria-busy="true"
+            aria-label="Loading backlog items"
+            className="space-y-4"
+          >
+            <div className="h-10 w-72 rounded-lg bg-[#EAEAE4] dark:bg-zinc-800/70 animate-pulse" />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {[0, 1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="h-64 rounded-lg border border-[#D4D4CE] dark:border-zinc-800 bg-white dark:bg-[#161B24] p-3 space-y-3 animate-pulse"
+                >
+                  <div className="h-4 w-1/2 rounded bg-[#EAEAE4] dark:bg-zinc-800" />
+                  <div className="h-16 rounded bg-[#EAEAE4] dark:bg-zinc-800" />
+                  <div className="h-16 rounded bg-[#EAEAE4] dark:bg-zinc-800" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : displayedItems.length === 0 ? (
           <EmptyState
