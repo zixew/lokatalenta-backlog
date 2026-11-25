@@ -16,6 +16,8 @@ interface BacklogItemCardProps {
   onEdit: (item: BacklogItem) => void;
   onDelete: (id: string) => Promise<void>;
   onInspect?: (item: BacklogItem) => void;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 export function BacklogItemCard({
@@ -24,6 +26,8 @@ export function BacklogItemCard({
   onEdit,
   onDelete,
   onInspect,
+  selected = false,
+  onToggleSelect,
 }: BacklogItemCardProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -55,14 +59,29 @@ export function BacklogItemCard({
     <article
       data-testid={`backlog-card-${item.id}`}
       onClick={() => onInspect?.(item)}
-      className={`rounded-lg border border-[#E5E3DC] bg-white p-3.5 transition-all duration-200 ease-out hover:border-zinc-300 dark:border-zinc-800 dark:bg-[#161B22] dark:hover:border-zinc-700 ${
-        onInspect ? 'cursor-pointer hover:shadow-xs' : ''
-      }`}
+      className={`rounded-lg border bg-white p-3.5 transition-all duration-200 ease-out dark:bg-[#161B22] ${
+        selected
+          ? 'border-[#0F766E] ring-1 ring-[#0F766E]/30 dark:border-teal-500 dark:ring-teal-500/30'
+          : 'border-[#E5E3DC] hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700'
+      } ${onInspect ? 'cursor-pointer hover:shadow-xs' : ''}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-1.5">
-        <span className="text-xs font-bold text-zinc-900 font-mono-tabular dark:text-slate-100">
-          {item.id}
-        </span>
+        <div className="flex items-center gap-2">
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              data-testid={`select-item-${item.id}`}
+              aria-label={`Select ${item.id}`}
+              checked={selected}
+              onClick={(e) => e.stopPropagation()}
+              onChange={() => onToggleSelect(item.id)}
+              className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 dark:border-zinc-600"
+            />
+          )}
+          <span className="text-xs font-bold text-zinc-900 font-mono-tabular dark:text-slate-100">
+            {item.id}
+          </span>
+        </div>
         <div className="flex flex-wrap items-center gap-1">
           <span
             className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${TYPE_BADGE_CLASS[item.type]}`}

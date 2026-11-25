@@ -30,6 +30,21 @@ export function StatsBar({
     return map;
   }, [allItems]);
 
+  const moscowSp = useMemo(() => {
+    let must = 0;
+    let should = 0;
+    let could = 0;
+    let wont = 0;
+    for (const item of allItems) {
+      if (item.moscow === 'must') must += item.storyPoints;
+      else if (item.moscow === 'should') should += item.storyPoints;
+      else if (item.moscow === 'could') could += item.storyPoints;
+      else wont += item.storyPoints;
+    }
+    const total = must + should + could + wont;
+    return { must, should, could, wont, total };
+  }, [allItems]);
+
   const activeDivisionMeta =
     activeDivision !== 'all'
       ? CANONICAL_DIVISIONS.find((d) => d.id === activeDivision)
@@ -111,6 +126,88 @@ export function StatsBar({
             <span className="font-mono-tabular font-semibold">{stats.byStatus.in_sprint}</span> ·
             Done: <span className="font-mono-tabular font-semibold">{stats.byStatus.done}</span>
           </p>
+        </div>
+      </div>
+
+      <div
+        data-testid="moscow-sp-distribution"
+        className="rounded-lg border border-[#E5E3DC] bg-white px-4 py-3 dark:border-zinc-800 dark:bg-[#161B22]"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 dark:text-slate-400">
+            MoSCoW SP Distribution
+          </span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-700 dark:text-slate-300">
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#0F766E] dark:bg-teal-500" />
+              <span>Must:</span>
+              <span className="font-mono-tabular font-semibold text-zinc-900 dark:text-slate-100">
+                {moscowSp.must} SP
+              </span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />
+              <span>Should:</span>
+              <span className="font-mono-tabular font-semibold text-zinc-900 dark:text-slate-100">
+                {moscowSp.should} SP
+              </span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-sky-500" />
+              <span>Could:</span>
+              <span className="font-mono-tabular font-semibold text-zinc-900 dark:text-slate-100">
+                {moscowSp.could} SP
+              </span>
+            </span>
+            {moscowSp.wont > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-zinc-400 dark:bg-zinc-600" />
+                <span>Won&apos;t:</span>
+                <span className="font-mono-tabular font-semibold text-zinc-900 dark:text-slate-100">
+                  {moscowSp.wont} SP
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div
+          role="img"
+          aria-label={`MoSCoW story points: Must ${moscowSp.must} SP, Should ${moscowSp.should} SP, Could ${moscowSp.could} SP${moscowSp.wont > 0 ? `, Won't ${moscowSp.wont} SP` : ''}`}
+          className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
+        >
+          {moscowSp.total > 0 && (
+            <>
+              {moscowSp.must > 0 && (
+                <div
+                  title={`Must: ${moscowSp.must} SP`}
+                  className="h-full bg-[#0F766E] transition-all duration-300 dark:bg-teal-500"
+                  style={{ width: `${(moscowSp.must / moscowSp.total) * 100}%` }}
+                />
+              )}
+              {moscowSp.should > 0 && (
+                <div
+                  title={`Should: ${moscowSp.should} SP`}
+                  className="h-full bg-amber-500 transition-all duration-300"
+                  style={{ width: `${(moscowSp.should / moscowSp.total) * 100}%` }}
+                />
+              )}
+              {moscowSp.could > 0 && (
+                <div
+                  title={`Could: ${moscowSp.could} SP`}
+                  className="h-full bg-sky-500 transition-all duration-300"
+                  style={{ width: `${(moscowSp.could / moscowSp.total) * 100}%` }}
+                />
+              )}
+              {moscowSp.wont > 0 && (
+                <div
+                  title={`Won't: ${moscowSp.wont} SP`}
+                  className="h-full bg-zinc-400 transition-all duration-300 dark:bg-zinc-600"
+                  style={{ width: `${(moscowSp.wont / moscowSp.total) * 100}%` }}
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
 

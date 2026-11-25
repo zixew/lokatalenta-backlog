@@ -15,6 +15,9 @@ interface BacklogListViewProps {
   onStatusChange: (id: string, status: BacklogStatus) => Promise<void>;
   onEdit: (item: BacklogItem) => void;
   onDelete: (id: string) => Promise<void>;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: (ids: string[]) => void;
 }
 
 export function BacklogListView({
@@ -22,9 +25,16 @@ export function BacklogListView({
   onStatusChange,
   onEdit,
   onDelete,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
 }: BacklogListViewProps) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  const showCheckboxes = Boolean(onToggleSelect);
+  const allVisibleSelected =
+    showCheckboxes && items.length > 0 && items.every((item) => selectedIds?.has(item.id));
 
   const handleStatusChange = async (id: string, nextStatus: BacklogStatus) => {
     setBusyId(id);
@@ -53,6 +63,20 @@ export function BacklogListView({
       <table className="w-full min-w-[960px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-[#E5E3DC] bg-[#FAF9F6] text-[11px] font-semibold uppercase tracking-wider text-zinc-600 dark:border-zinc-800 dark:bg-[#11161E] dark:text-slate-400">
+            {showCheckboxes && (
+              <th className="w-10 px-3.5 py-2.5">
+                {onToggleSelectAll && (
+                  <input
+                    type="checkbox"
+                    data-testid="select-all-visible"
+                    aria-label="Select all visible items"
+                    checked={allVisibleSelected}
+                    onChange={() => onToggleSelectAll(items.map((item) => item.id))}
+                    className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 dark:border-zinc-600"
+                  />
+                )}
+              </th>
+            )}
             <th className="px-3.5 py-2.5">ID</th>
             <th className="px-3.5 py-2.5">Type</th>
             <th className="px-3.5 py-2.5">Title</th>
@@ -71,13 +95,28 @@ export function BacklogListView({
             const agent = AGENT_MAP.get(item.ownerAgentId);
             const isBusy = busyId === item.id;
             const isConfirming = confirmDeleteId === item.id;
+            const isSelected = selectedIds?.has(item.id) ?? false;
 
             return (
               <tr
                 key={item.id}
                 data-testid={`backlog-row-${item.id}`}
-                className="transition-colors hover:bg-[#FAF9F6] dark:hover:bg-zinc-900/50"
+                className={`transition-colors hover:bg-[#FAF9F6] dark:hover:bg-zinc-900/50 ${
+                  isSelected ? 'bg-teal-50/50 dark:bg-teal-950/20' : ''
+                }`}
               >
+                {showCheckboxes && (
+                  <td className="px-3.5 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      data-testid={`select-item-${item.id}`}
+                      aria-label={`Select ${item.id}`}
+                      checked={isSelected}
+                      onChange={() => onToggleSelect?.(item.id)}
+                      className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 dark:border-zinc-600"
+                    />
+                  </td>
+                )}
                 <td className="px-3.5 py-3 align-top text-xs font-bold text-zinc-900 font-mono-tabular dark:text-slate-100">
                   {item.id}
                 </td>

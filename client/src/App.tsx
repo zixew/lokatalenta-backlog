@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   BacklogItem,
@@ -58,6 +58,10 @@ export function App() {
   const [status, setStatus] = useState('all');
   const [priority, setPriority] = useState('all');
   const [itemType, setItemType] = useState('all');
+  const [quickPreset, setQuickPreset] = useState<'tech_debt_qa' | null>(null);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BacklogItem | null>(null);
@@ -80,11 +84,30 @@ export function App() {
   );
 
   const hasActiveFilters =
+    quickPreset !== null ||
     search.trim() !== '' ||
     division !== 'all' ||
     status !== 'all' ||
     priority !== 'all' ||
     itemType !== 'all';
+
+  const displayedItems = useMemo(() => {
+    if (quickPreset === 'tech_debt_qa') {
+      return items.filter(
+        (item) => item.type === 'tech_debt' || item.ownerDivision === 'qa',
+      );
+    }
+    return items;
+  }, [items, quickPreset]);
+
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const selectedStoryPoints = useMemo(
+    () =>
+      allItems
+        .filter((item) => selectedSet.has(item.id))
+        .reduce((sum, item) => sum + item.storyPoints, 0),
+    [allItems, selectedSet],
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -97,6 +120,8 @@ export function App() {
       setItems(filteredItems);
       setAllItems(unfilteredItems);
       setStats(nextStats);
+      const validIds = new Set(unfilteredItems.map((item) => item.id));
+      setSelectedIds((prev) => prev.filter((id) => validIds.has(id)));
     } catch (err) {
       setErrorBanner(err instanceof Error ? err.message : 'Failed to load backlog');
     } finally {
@@ -137,11 +162,66 @@ export function App() {
   }, [activeFilters]);
 
   const handleResetFilters = () => {
+    setQuickPreset(null);
     setSearch('');
     setDivision('all');
     setStatus('all');
     setPriority('all');
     setItemType('all');
+  };
+
+  const handleTechDebtQaPreset = () => {
+    handleResetFilters();
+    setQuickPreset('tech_debt_qa');
+  };
+
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id],
+    );
+  }, []);
+
+  const handleToggleSelectAll = useCallback((visibleIds: string[]) => {
+    setSelectedIds((prev) => {
+      const prevSet = new Set(prev);
+      const allSelected =
+        visibleIds.length > 0 && visibleIds.every((id) => prevSet.has(id));
+      if (allSelected) {
+        const visibleSet = new Set(visibleIds);
+        return prev.filter((id) => !visibleSet.has(id));
+      }
+      const merged = [...prev];
+      for (const id of visibleIds) {
+        if (!prevSet.has(id)) {
+          merged.push(id);
+        }
+      }
+      return merged;
+    });
+  }, []);
+
+  const handleBulkStatusUpdate = async (nextStatus: BacklogStatus) => {
+    if (selectedIds.length === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    setErrorBanner(null);
+    const failedIds: string[] = [];
+    let firstError: string | null = null;
+    for (const id of selectedIds) {
+      try {
+        await updateBacklogItemApi(id, { status: nextStatus });
+      } catch (err) {
+        failedIds.push(id);
+        if (!firstError) {
+          firstError = err instanceof Error ? err.message : 'Failed to update status';
+        }
+      }
+    }
+    await loadData();
+    setSelectedIds(failedIds);
+    if (firstError) {
+      setErrorBanner(firstError);
+    }
+    setBulkBusy(false);
   };
 
   const handleOpenCreate = () => {
@@ -229,7 +309,69 @@ export function App() {
           onResetFilters={handleResetFilters}
           onCreateItem={handleOpenCreate}
           exportCsvUrl={getExportCsvUrl(activeFilters)}
+          isTechDebtQaActive={quickPreset === 'tech_debt_qa'}
+          onTechDebtQaPreset={handleTechDebtQaPreset}
         />
+
+        {selectedIds.length > 0 && (
+          <div
+            data-testid="bulk-action-bar"
+            role="region"
+            aria-label="Bulk selection actions"
+            className="sticky top-2 z-30 flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-[#0F766E] bg-teal-50/95 px-3.5 py-2.5 shadow-sm backdrop-blur-xs dark:border-teal-500 dark:bg-teal-950/90"
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#0F766E] dark:text-teal-200">
+              <span className="font-mono-tabular">
+                {selectedIds.length} selected
+              </span>
+              <span aria-hidden="true">·</span>
+              <span className="font-mono-tabular">{selectedStoryPoints} SP</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[11px] font-medium text-zinc-600 dark:text-slate-300">
+                Set status:
+              </span>
+              <button
+                type="button"
+                data-testid="bulk-status-ready"
+                disabled={bulkBusy}
+                onClick={() => void handleBulkStatusUpdate('ready')}
+                className="inline-flex min-h-[34px] items-center rounded-md border border-[#0F766E] bg-[#0F766E] px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-[#115E59] disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[30px] dark:bg-teal-600 dark:hover:bg-teal-500"
+              >
+                Ready
+              </button>
+              <button
+                type="button"
+                data-testid="bulk-status-groomed"
+                disabled={bulkBusy}
+                onClick={() => void handleBulkStatusUpdate('groomed')}
+                className="inline-flex min-h-[34px] items-center rounded-md border border-[#E5E3DC] bg-white px-2.5 py-1 text-xs font-semibold text-zinc-800 transition-colors hover:bg-[#F6F5F1] disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[30px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100 dark:hover:bg-zinc-800"
+              >
+                Groomed
+              </button>
+              <button
+                type="button"
+                data-testid="bulk-status-in_sprint"
+                disabled={bulkBusy}
+                onClick={() => void handleBulkStatusUpdate('in_sprint')}
+                className="inline-flex min-h-[34px] items-center rounded-md border border-[#E5E3DC] bg-white px-2.5 py-1 text-xs font-semibold text-zinc-800 transition-colors hover:bg-[#F6F5F1] disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[30px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-100 dark:hover:bg-zinc-800"
+              >
+                In Sprint
+              </button>
+              <button
+                type="button"
+                data-testid="bulk-clear-btn"
+                disabled={bulkBusy}
+                onClick={() => setSelectedIds([])}
+                className="inline-flex min-h-[34px] items-center gap-1 rounded-md border border-transparent px-2 py-1 text-xs font-medium text-zinc-700 transition-colors hover:bg-white/70 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[30px] dark:text-slate-300 dark:hover:bg-zinc-900/60"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {errorBanner && (
           <div
@@ -245,7 +387,7 @@ export function App() {
           <div className="rounded-lg border border-[#E5E3DC] bg-white p-10 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:bg-[#161B22] dark:text-slate-400">
             Loading backlog items...
           </div>
-        ) : items.length === 0 ? (
+        ) : displayedItems.length === 0 ? (
           <EmptyState
             filtered={hasActiveFilters}
             onCreateItem={handleOpenCreate}
@@ -253,18 +395,23 @@ export function App() {
           />
         ) : viewMode === 'kanban' ? (
           <KanbanBoard
-            items={items}
+            items={displayedItems}
             onStatusChange={handleStatusChange}
             onEdit={handleOpenEdit}
             onDelete={handleDelete}
             onInspect={setInspectingItem}
+            selectedIds={selectedSet}
+            onToggleSelect={handleToggleSelect}
           />
         ) : (
           <BacklogListView
-            items={items}
+            items={displayedItems}
             onStatusChange={handleStatusChange}
             onEdit={handleOpenEdit}
             onDelete={handleDelete}
+            selectedIds={selectedSet}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
           />
         )}
       </main>

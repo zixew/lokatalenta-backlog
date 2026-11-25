@@ -9,6 +9,8 @@ interface KanbanBoardProps {
   onEdit: (item: BacklogItem) => void;
   onDelete: (id: string) => Promise<void>;
   onInspect?: (item: BacklogItem) => void;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 export function KanbanBoard({
@@ -17,6 +19,8 @@ export function KanbanBoard({
   onEdit,
   onDelete,
   onInspect,
+  selectedIds,
+  onToggleSelect,
 }: KanbanBoardProps) {
   return (
     <div
@@ -63,6 +67,8 @@ export function KanbanBoard({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onInspect={onInspect}
+                    selected={selectedIds?.has(item.id) ?? false}
+                    onToggleSelect={onToggleSelect}
                   />
                 ))
               )}

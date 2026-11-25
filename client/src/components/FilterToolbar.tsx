@@ -25,6 +25,8 @@ interface FilterToolbarProps {
   onResetFilters: () => void;
   onCreateItem: () => void;
   exportCsvUrl: string;
+  isTechDebtQaActive?: boolean;
+  onTechDebtQaPreset?: () => void;
 }
 
 export function FilterToolbar({
@@ -44,6 +46,8 @@ export function FilterToolbar({
   onResetFilters,
   onCreateItem,
   exportCsvUrl,
+  isTechDebtQaActive = false,
+  onTechDebtQaPreset,
 }: FilterToolbarProps) {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -67,6 +71,97 @@ export function FilterToolbar({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  const noDropdownOrSearchFilters =
+    search.trim() === '' &&
+    division === 'all' &&
+    status === 'all' &&
+    priority === 'all' &&
+    itemType === 'all';
+
+  const activePresetId = !hasActiveFilters
+    ? 'all'
+    : isTechDebtQaActive && noDropdownOrSearchFilters
+      ? 'tech-debt-qa'
+      : !isTechDebtQaActive &&
+          priority === 'P0' &&
+          status === 'all' &&
+          division === 'all' &&
+          itemType === 'all' &&
+          search.trim() === ''
+        ? 'p0'
+        : !isTechDebtQaActive &&
+            status === 'ready' &&
+            priority === 'all' &&
+            division === 'all' &&
+            itemType === 'all' &&
+            search.trim() === ''
+          ? 'ready'
+          : !isTechDebtQaActive &&
+              !onTechDebtQaPreset &&
+              itemType === 'tech_debt' &&
+              status === 'all' &&
+              priority === 'all' &&
+              division === 'all' &&
+              search.trim() === ''
+            ? 'tech-debt-qa'
+            : !isTechDebtQaActive &&
+                search.trim().toLowerCase() === 'free-access' &&
+                division === 'all' &&
+                status === 'all' &&
+                priority === 'all' &&
+                itemType === 'all'
+              ? 'free-access'
+              : null;
+
+  const presets = [
+    {
+      id: 'all',
+      label: 'All',
+      testId: 'preset-all',
+      onClick: () => onResetFilters(),
+    },
+    {
+      id: 'p0',
+      label: 'P0 Critical',
+      testId: 'preset-p0-critical',
+      onClick: () => {
+        onResetFilters();
+        onPriorityChange('P0');
+      },
+    },
+    {
+      id: 'ready',
+      label: 'Ready',
+      testId: 'preset-ready',
+      onClick: () => {
+        onResetFilters();
+        onStatusChange('ready');
+      },
+    },
+    {
+      id: 'tech-debt-qa',
+      label: 'Tech Debt & QA',
+      testId: 'preset-tech-debt-qa',
+      onClick: () => {
+        if (onTechDebtQaPreset) {
+          onTechDebtQaPreset();
+        } else {
+          onResetFilters();
+          onItemTypeChange('tech_debt');
+        }
+      },
+    },
+    {
+      id: 'free-access',
+      label: 'Free-Access',
+      testId: 'preset-free-access',
+      onClick: () => {
+        onResetFilters();
+        onSearchChange('Free-Access');
+      },
+    },
+  ] as const;
 
   return (
     <section
@@ -226,6 +321,36 @@ export function FilterToolbar({
             <span>New Item</span>
           </button>
         </div>
+      </div>
+
+      <div
+        data-testid="backlog-presets"
+        role="group"
+        aria-label="Quick-view presets"
+        className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-[#E5E3DC] pt-2.5 dark:border-zinc-800"
+      >
+        <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-slate-400">
+          Quick Views
+        </span>
+        {presets.map((preset) => {
+          const isActive = activePresetId === preset.id;
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              data-testid={preset.testId}
+              aria-pressed={isActive}
+              onClick={preset.onClick}
+              className={
+                isActive
+                  ? 'inline-flex min-h-[34px] items-center rounded-full border border-[#0F766E] bg-teal-50 px-3 py-1 text-xs font-semibold text-[#0F766E] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[28px] dark:border-teal-500 dark:bg-teal-950/60 dark:text-teal-300'
+                  : 'inline-flex min-h-[34px] items-center rounded-full border border-[#E5E3DC] bg-[#F6F5F1] px-3 py-1 text-xs font-medium text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 lg:min-h-[28px] dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-300 dark:hover:bg-zinc-800'
+              }
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
     </section>
   );
