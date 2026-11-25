@@ -59,6 +59,35 @@ describe('Backlog REST API & Dependency DAG', () => {
     expect(healthRes.status).toBe(200);
     const healthJson = (await healthRes.json()) as { ok: boolean; service: string };
     expect(healthJson.ok).toBe(true);
+
+    const scoreRes = await fetch(`${baseUrl}/api/evaluations/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        candidateId: 'cand-001',
+        scores: { technical: 90, culture: 80, problemSolving: 85 },
+        weights: { technical: 0.5, culture: 0.25, problemSolving: 0.25 },
+      }),
+    });
+    expect(scoreRes.status).toBe(200);
+    const scoreJson = (await scoreRes.json()) as { evaluation: { compositeScore: number; matched: boolean } };
+    expect(scoreJson.evaluation.compositeScore).toBeGreaterThanOrEqual(80);
+    expect(scoreJson.evaluation.matched).toBe(true);
+
+    const batchRes = await fetch(`${baseUrl}/api/candidates/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        candidates: [
+          { id: 'c1', name: 'Alice', role: 'Dev' },
+          { id: 'c2', name: 'Bob', role: 'QA' },
+        ],
+      }),
+    });
+    expect(batchRes.status).toBe(201);
+    const batchJson = (await batchRes.json()) as { total: number; ingestedCount: number };
+    expect(batchJson.total).toBe(2);
+    expect(batchJson.ingestedCount).toBe(2);
     expect(healthJson.service).toBe('lokatalenta-backlog');
 
     const divRes = await fetch(`${baseUrl}/api/divisions`);

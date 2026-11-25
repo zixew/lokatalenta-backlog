@@ -10,7 +10,7 @@ import {
   ECOSYSTEM_PORTS,
   getAgentsByDivision,
 } from '../shared/contracts.ts';
-import type { DivisionId } from '../shared/types.ts';
+import type { BacklogItem, DivisionId } from '../shared/types.ts';
 import {
   createBacklogItem,
   deleteBacklogItem,
@@ -243,6 +243,96 @@ export function createApp(options: CreateAppOptions): Express {
         return;
       }
       res.json({ item });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  api.post('/evaluations/score', async (req, res, next) => {
+    try {
+      const body = req.body as {
+        candidateId?: string;
+        role?: string;
+        scores?: { technical?: number; culture?: number; problemSolving?: number };
+        weights?: { technical?: number; culture?: number; problemSolving?: number };
+      };
+
+      const candidateId = typeof body.candidateId === 'string' && body.candidateId.trim()
+        ? body.candidateId.trim()
+        : `cand-${Date.now().toString(36)}`;
+      const role = typeof body.role === 'string' && body.role.trim() ? body.role.trim() : 'Software Engineer';
+      
+      const techScore = Math.max(0, Math.min(100, Number(body.scores?.technical ?? 80)));
+      const cultScore = Math.max(0, Math.min(100, Number(body.scores?.culture ?? 85)));
+      const probScore = Math.max(0, Math.min(100, Number(body.scores?.problemSolving ?? 90)));
+
+      const wTech = Number(body.weights?.technical ?? 0.5);
+      const wCult = Number(body.weights?.culture ?? 0.25);
+      const wProb = Number(body.weights?.problemSolving ?? 0.25);
+      const sumWeights = wTech + wCult + wProb || 1;
+
+      const compositeScore = Math.round(((techScore * wTech) + (cultScore * wCult) + (probScore * wProb)) / sumWeights);
+      const evaluation = {
+        candidateId,
+        role,
+        scores: { technical: techScore, culture: cultScore, problemSolving: probScore },
+        weights: { technical: wTech, culture: wCult, problemSolving: wProb },
+        compositeScore,
+        matched: compositeScore >= 75,
+        evaluatedAt: new Date().toISOString(),
+      };
+
+      const dummyItem: BacklogItem = {
+        id: candidateId,
+        type: 'task',
+        title: `AI Evaluation: ${candidateId} (${compositeScore}/100)`,
+        description: `Candidate evaluation for ${role}`,
+        acceptanceCriteria: [],
+        dependencies: [],
+        storyPoints: 1,
+        priority: 'P1',
+        moscow: 'should',
+        status: evaluation.matched ? 'done' : 'ready',
+        ownerDivision: 'engineering',
+        ownerAgentId: 4,
+        sprintId: 'SPR-19',
+        createdAt: evaluation.evaluatedAt,
+        updatedAt: evaluation.evaluatedAt,
+      };
+      void emitter.emitBacklogEvent('backlog.updated', dummyItem, { compositeScore, matched: evaluation.matched });
+
+      res.status(200).json({ evaluation });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  api.post('/candidates/batch', (req, res, next) => {
+    try {
+      const body = req.body as { candidates?: Array<{ id?: string; name?: string; role?: string; score?: number }> };
+      if (!Array.isArray(body.candidates)) {
+        throw new DomainValidationError(400, 'candidates must be an array');
+      }
+
+      const total = body.candidates.length;
+      if (total > 100) {
+        throw new DomainValidationError(400, 'batch size exceeds maximum of 100 candidates');
+      }
+
+      const ingested = body.candidates.map((c, idx) => ({
+        id: c.id || `cand-batch-${idx + 1}`,
+        name: c.name || `Candidate ${idx + 1}`,
+        role: c.role || 'Generalist',
+        score: typeof c.score === 'number' ? Math.max(0, Math.min(100, c.score)) : 75,
+        status: 'ingested',
+        ingestedAt: new Date().toISOString(),
+      }));
+
+      res.status(201).json({
+        total,
+        ingestedCount: ingested.length,
+        candidates: ingested,
+      });
     } catch (err) {
       next(err);
     }
