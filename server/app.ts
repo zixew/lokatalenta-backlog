@@ -22,6 +22,7 @@ import {
   updateBacklogItem,
 } from './domain.ts';
 import { createGatewayEmitter, type GatewayEmitter } from './gatewayEmitter.ts';
+import { tursoAdapter } from './tursoAdapter.ts';
 
 export interface CreateAppOptions {
   db: DatabaseSync;
@@ -160,11 +161,13 @@ export function createApp(options: CreateAppOptions): Express {
 
   const api = express.Router();
 
-  api.get('/health', (_req, res) => {
+  api.get('/health', async (_req, res) => {
+    const tursoHealth = await tursoAdapter.checkHealth();
     res.json({
       ok: true,
       service: 'lokatalenta-backlog',
       port,
+      turso: tursoHealth,
       timestamp: new Date().toISOString(),
     });
   });
